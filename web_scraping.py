@@ -8,10 +8,14 @@ import redis
 import json
 import pathlib
 import pandas as pd
+import os
 from result_104 import Result
 
 
 def web_scraping(keyword, pages):
+    topic = os.environ.get('TOPIC')
+    number_of_partitions = int(os.environ.get('PARTITIONS'))
+
     time_start = time.time()
     keyword_url_format = urllib.parse.quote(keyword)  # 中文字轉 url 格式
     urls = [f'https://www.104.com.tw/jobs/search/?ro=0&kwop=7&keyword={keyword_url_format}&order=15&asc=0&page={x}' for
@@ -21,13 +25,18 @@ def web_scraping(keyword, pages):
     for page, url in enumerate(urls):
         producer = kafka.KafkaProducer(bootstrap_servers=['172.105.202.99:9092'],
                                        value_serializer=lambda x: x.encode('utf-8'))
-        producer.send('temp_data', key=bytes(page), value=f'{url}|{ts}|{page}', partition=(page % 3))
-        print(f'==> {url}_{page} send to kafka, partition={page % 3}')
+        producer.send(topic, key=bytes(page), value=f'{url}|{ts}|{page}', partition=page % number_of_partitions)
+        print(f'==> {url}_{page} send to kafka, partition={page % number_of_partitions}')
 
     done_page = [f'{ts}_{page}' for page in range(pages)]
     result = Result(0, [], {}, {}, {})
     r = redis.Redis(host='172.105.202.99', port=6379)
+    fail_count = 0
+    last_length_of_done_page = len(done_page)
     while done_page:
+        if fail_count == 15:
+            return None
+
         for each in done_page:
             try:
                 data = r.get(each).decode('utf8').replace('\'', '\"')
@@ -37,11 +46,17 @@ def web_scraping(keyword, pages):
                 result.integrate(one_page_result)
                 done_page.remove(each)
 
+                last_length_of_done_page = len(done_page)
+                fail_count = 0  # 重設
             except AttributeError:
-                continue
+                pass
             except Exception as e:
                 print(e)
 
+        if len(done_page) == last_length_of_done_page:
+            fail_count += 1
+
+        # print(last_length_of_done_page, len(done_page), fail_count)  # for check
         print(f'==> page remaining {len(done_page)} / {pages}')
         time.sleep(2)
     # print(result)
@@ -63,7 +78,8 @@ def web_scraping(keyword, pages):
                   '科系要求', '語文條件', '擅長工具']
 
     df = pd.DataFrame(result.result_list)
-    df.to_csv(static_folder.joinpath(f'104_result_{keyword}x{pages}.csv'), header=data_title, index=False, encoding='utf-8-sig')
+    df.to_csv(static_folder.joinpath(f'104_result_{keyword}x{pages}.csv'), header=data_title, index=False,
+              encoding='utf-8-sig')
 
     time_end = time.time()
     print(f'==> all scraping process take {time_end - time_start:.4f} seconds')
@@ -150,4 +166,4 @@ def web_scraping_demo():
 
 
 if __name__ == '__main__':
-    web_scraping('資料工程', 3)
+    web_scraping('資料工程', 1)

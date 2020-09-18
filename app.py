@@ -37,10 +37,13 @@ def start_here():
             pages = int(request.form.get('pages'))
             returned_dict = web_scraping(keyword, pages)  # 從爬蟲函式取得排名名單 呼叫畫圖函式
 
-        v.visualize_pie(returned_dict['specialty_dict_sorted'], keyword, returned_dict['count'], pages)
-        v.visualize_barh(returned_dict['major_req_dict_sorted'], keyword, returned_dict['count'], pages)
-        v.visualize_bar(returned_dict['edu_req_dict_sorted'], keyword, returned_dict['count'], pages)
-        count = returned_dict['count']
+        try:
+            v.visualize_pie(returned_dict['specialty_dict_sorted'], keyword, returned_dict['count'], pages)
+            v.visualize_barh(returned_dict['major_req_dict_sorted'], keyword, returned_dict['count'], pages)
+            v.visualize_bar(returned_dict['edu_req_dict_sorted'], keyword, returned_dict['count'], pages)
+            count = returned_dict['count']
+        except:
+            return render_template('error.html')
 
         # 把表格中的每個欄位checkbox取得後存在 show_column 的 list 變數 (有勾的值會是 'on'，沒勾是 None)
         # 再呼叫 csv_filter 函式去生成一個新的使用者客製的表格
