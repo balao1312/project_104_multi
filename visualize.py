@@ -7,7 +7,7 @@ def init():
     global static_path
     static_path = pathlib.Path.cwd().joinpath('static')
 
-    plt.rcParams['font.sans-serif'] = 'PingFang HK'  # 設字型
+    plt.rcParams['font.sans-serif'] = ['simhei']  # 設字型
     plt.rcParams['axes.titlepad'] = 20  # 設定 title 與主圖的距離
     matplotlib.use('agg')  # 為了在flask裡不跳警告
 

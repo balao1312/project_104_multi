@@ -5,6 +5,7 @@ import csvfilter
 import pathlib
 import time
 import visualize as v
+import recreate_topic
 from flask import Flask, request, render_template
 from web_scraping import web_scraping, web_scraping_demo
 
@@ -13,6 +14,7 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 1  # 設置瀏覽器不緩存
 
 occupied = False
 
+recreate_topic.recreate()
 
 @app.route('/', methods=['GET', 'POST'])
 def start_here():
@@ -43,6 +45,7 @@ def start_here():
             v.visualize_bar(returned_dict['edu_req_dict_sorted'], keyword, returned_dict['count'], pages)
             count = returned_dict['count']
         except:
+            occupied = False
             return render_template('error.html')
 
         # 把表格中的每個欄位checkbox取得後存在 show_column 的 list 變數 (有勾的值會是 'on'，沒勾是 None)
@@ -87,7 +90,7 @@ def start_here():
             filter_csv = csvfilter.csv_filter(show_column, keyword, pages)
 
         end_time = time.time()  # 計時的結束時間
-        total_time = end_time - start_time
+        total_time = round(end_time - start_time,4)
         print(f'total time spent : {total_time:.4f} seconds')
         occupied = False
         return render_template('result.html', total_time=total_time, keyword=keyword, filter_csv=filter_csv, count=count, pages=pages)
