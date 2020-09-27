@@ -1,0 +1,9 @@
+FROM balao1312/ubuntu_with_python37:latest
+
+ADD . /consumer
+
+WORKDIR /consumer
+
+RUN pip3 install -r requirement.txt
+
+CMD python3 consumer.py
