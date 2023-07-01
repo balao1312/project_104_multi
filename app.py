@@ -8,9 +8,15 @@ import visualize as v
 import recreate_topic
 from flask import Flask, request, render_template
 from web_scraping import web_scraping, web_scraping_demo
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__, static_url_path='/static', static_folder='./static')
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 1  # 設置瀏覽器不緩存
+
+load_dotenv()
+kafka_host = os.getenv('KAFKA_HOST')
+kafka_port = os.getenv('KAFKA_PORT')
 
 occupied = False
 
@@ -98,4 +104,4 @@ def start_here():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

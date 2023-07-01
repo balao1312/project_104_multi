@@ -4,13 +4,18 @@
 import kafka
 import os
 from one_page_scraping import one_page_scraping
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+KAFKA_HOST = os.getenv('KAFKA_HOST')
+KAFKA_PORT = os.getenv('KAFKA_PORT')
 
-which_partition = os.environ.get('PARTITION')
-which_topic = os.environ.get('TOPIC')
+which_partition = 0 #os.environ.get('PARTITION')
+which_topic = 'test' #os.environ.get('TOPIC')
 
 consumer = kafka.KafkaConsumer(
-    bootstrap_servers=['172.105.202.99:9092'],
+    bootstrap_servers=[f'{KAFKA_HOST}:{KAFKA_PORT}'],
     auto_offset_reset='latest',
     enable_auto_commit=True,
     group_id='my-group',

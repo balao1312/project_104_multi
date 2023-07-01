@@ -10,7 +10,15 @@ import pathlib
 import pandas as pd
 import os
 from result_104 import Result
+from dotenv import load_dotenv
+import os
 
+
+load_dotenv()
+KAFKA_HOST = os.getenv('KAFKA_HOST')
+KAFKA_PORT = os.getenv('KAFKA_PORT')
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = os.getenv('REDIS_PORT')
 
 def web_scraping(keyword, pages):
     topic = os.environ.get('TOPIC')
@@ -23,14 +31,14 @@ def web_scraping(keyword, pages):
     ts = time.time()
 
     for page, url in enumerate(urls):
-        producer = kafka.KafkaProducer(bootstrap_servers=['172.105.202.99:9092'],
+        producer = kafka.KafkaProducer(bootstrap_servers=[f'{KAFKA_HOST}:{KAFKA_PORT}'],
                                        value_serializer=lambda x: x.encode('utf-8'))
         producer.send(topic, key=bytes(page), value=f'{url}|{ts}|{page}', partition=page % number_of_partitions)
         print(f'==> {url}_{page} send to kafka, partition={page % number_of_partitions}')
 
     done_page = [f'{ts}_{page}' for page in range(pages)]
     result = Result(0, [], {}, {}, {})
-    r = redis.Redis(host='172.105.202.99', port=6379)
+    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
     fail_count = 0
     last_length_of_done_page = len(done_page)
     while done_page:

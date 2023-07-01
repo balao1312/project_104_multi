@@ -3,7 +3,12 @@ import requests
 import time
 import pandas as pd
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = os.getenv('REDIS_PORT')
 
 def one_page_scraping(url, timestamp, page):
     specialty_dict = {}  # 字典存技能統計
@@ -137,7 +142,7 @@ def one_page_scraping(url, timestamp, page):
     value = {'count': count, 'result_list': result_list, 'specialty_dict': specialty_dict, 'edu_req_dict': edu_req_dict,
              'major_req_dict': major_req_dict}
 
-    r = redis.Redis(host='172.105.202.99', port=6379)
+    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
     try:
         r.set(q_key, str(value))
     except Exception as e:
@@ -147,7 +152,6 @@ def one_page_scraping(url, timestamp, page):
 
 if __name__ == '__main__':
     one_page_scraping(
-        'https://www.104.com.tw/jobs/search/?ro=0&kwop=7&keyword=資料工程&order=15&asc=0&page=1&mode=l&jobsource'
-        '=2018indexpoc '
+        'https://www.104.com.tw/jobs/search/?keyword=%E8%B3%87%E6%96%99%E5%B7%A5%E7%A8%8B&order=1&jobsource=2018indexpoc&ro=0'
         , time.time()
         , 3)

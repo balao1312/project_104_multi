@@ -2,12 +2,17 @@ import kafka  # kafka-python
 import matplotlib  # for chinese file paths
 import os
 import time
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+kafka_host = os.getenv('KAFKA_HOST')
+kafka_port = os.getenv('KAFKA_PORT')
 
 def recreate():
-    Admin = kafka.KafkaAdminClient(bootstrap_servers=['172.105.202.99:9092'])
+    Admin = kafka.KafkaAdminClient(bootstrap_servers=[f'{kafka_host}:{kafka_port}'])
 
-    producer = kafka.KafkaProducer(bootstrap_servers=['172.105.202.99:9092'],
+    producer = kafka.KafkaProducer(bootstrap_servers=[f'{kafka_host}:{kafka_port}'],
                                    value_serializer=lambda x: x.encode('utf-8'))
 
     partitions = int(os.environ.get('PARTITIONS'))
